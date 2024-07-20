@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e8f4f8;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            width: 80%;
+            margin: auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333333;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .button-container button {
+            background-color: #008080;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 10px;
+        }
+
+        .button-container button:hover {
+            background-color: #004d4d;
+        }
+
+        .table-container {
+            display: none;
+            width: 100%;
+        }
+
+        .table-container.active {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            color: #333333;
+        }
+
+        th {
+            background-color: #008080;
+            color: #ffffff;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #afeeee;
+        }
+
+        th:first-child, td:first-child {
+            border-top-left-radius: 10px;
+            border-bottom-left-radius: 10px;
+        }
+
+        th:last-child, td:last-child {
+            border-top-right-radius: 10px;
+            border-bottom-right-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Panel</h1>
+        <div class="button-container">
+            <button onclick="showTable('doctors-details')">Doctors' Details</button>
+            <button onclick="showTable('appointments')">Doctors' Appointments</button>
+        </div>
+        <div id="doctors-details" class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Name</th>
+                        <th>Designation</th>
+                        <th>Specialization</th>
+                        <th>Qualification</th>
+                        <th>Experience</th>
+                        <th>Expertise</th>
+                        <th>Summary</th>
+                        <th>Available</th>
+                    </tr>
+                </thead>
+                <tbody id="doctors-details-body">
+                    <!-- Data will be inserted here dynamically -->
+                </tbody>
+            </table>
+        </div>
+        <div id="appointments" class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Patient ID</th>
+                        <th>Doctor ID</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Reason</th>
+                    </tr>
+                </thead>
+                <tbody id="appointments-body">
+                    <!-- Data will be inserted here dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            showTable('doctors-details'); // Show doctors' details by default
+        });
+
+        function showTable(tableId) {
+            const tables = document.querySelectorAll('.table-container');
+            tables.forEach(table => {
+                table.classList.remove('active');
+            });
+            document.getElementById(tableId).classList.add('active');
+            fetchData(tableId);
+        }
+
+        async function fetchData(tableId) {
+            let url = '';
+            if (tableId === 'doctors-details') {
+                url = 'https://7ef7-117-223-91-108.ngrok-free.app/doctors'; // Replace with your API URL
+            } else if (tableId === 'appointments') {
+                url = 'https://7ef7-117-223-91-108.ngrok-free.app/appointments'; // Replace with your API URL
+            }
+
+            try {
+                const response = await fetch(url); // This is a GET request by default
+                const data = await response.json();
+                console.log('Fetched Data:', data); // Log the data for debugging
+                populateTable(tableId, data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        function populateTable(tableId, data) {
+            let tbodyId = '';
+            if (tableId === 'doctors-details') {
+                tbodyId = 'doctors-details-body';
+            } else if (tableId === 'appointments') {
+                tbodyId = 'appointments-body';
+            }
+
+            const tbody = document.getElementById(tbodyId);
+            tbody.innerHTML = '';
+
+            if (tableId === 'doctors-details') {
+                data.forEach((doctor, index) => {
+                    console.log('Doctor Data:', doctor); // Log each doctor data for debugging
+                    const row = `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${doctor.name || 'N/A'}</td>
+                            <td>${doctor.username || 'N/A'}</td> <!-- Placeholder for designation -->
+                            <td>${doctor.website || 'N/A'}</td> <!-- Placeholder for specialization -->
+                            <td>${doctor.email || 'N/A'}</td> <!-- Placeholder for qualification -->
+                            <td>${Math.floor(Math.random() * 20)}</td> <!-- Placeholder for experience -->
+                            <td>${doctor.address.city || 'N/A'}</td> <!-- Placeholder for area_of_expertise -->
+                            <td>${doctor.company.catchPhrase || 'N/A'}</td> <!-- Placeholder for summary_of_experience -->
+                            <td>Yes</td> <!-- Placeholder for availability -->
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            } else if (tableId === 'appointments') {
+                data.forEach(appointment => {
+                    console.log('Appointment Data:', appointment); // Log each appointment data for debugging
+                    const row = `
+                        <tr>
+                            <td>${appointment.id || 'N/A'}</td>
+                            <td>${Math.floor(Math.random() * 100)}</td> <!-- Placeholder for patientId -->
+                            <td>${Math.floor(Math.random() * 100)}</td> <!-- Placeholder for doctorId -->
+                            <td>${appointment.title || 'N/A'}</td> <!-- Placeholder for date -->
+                            <td>${appointment.body || 'N/A'}</td> <!-- Placeholder for time -->
+                            <td>Consultation</td> <!-- Placeholder for reason -->
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            }
+        }
+    </script>
+</body>
+</html>

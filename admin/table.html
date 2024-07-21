@@ -165,9 +165,9 @@
         async function fetchData(tableId) {
             let url = '';
             if (tableId === 'doctors-details') {
-                url = 'https://7ef7-117-223-91-108.ngrok-free.app/doctors'; // Replace with your API URL
+                url = ' http://127.0.0.1:5000/doctors'; 
             } else if (tableId === 'appointments') {
-                url = 'https://7ef7-117-223-91-108.ngrok-free.app/appointments'; // Replace with your API URL
+                url = ' https://7ef7-117-223-91-108.ngrok-free.app/appointments'; 
             }
 
             try {
@@ -198,13 +198,13 @@
                         <tr>
                             <td>${index + 1}</td>
                             <td>${doctor.name || 'N/A'}</td>
-                            <td>${doctor.username || 'N/A'}</td> <!-- Placeholder for designation -->
-                            <td>${doctor.website || 'N/A'}</td> <!-- Placeholder for specialization -->
-                            <td>${doctor.email || 'N/A'}</td> <!-- Placeholder for qualification -->
-                            <td>${Math.floor(Math.random() * 20)}</td> <!-- Placeholder for experience -->
-                            <td>${doctor.address.city || 'N/A'}</td> <!-- Placeholder for area_of_expertise -->
-                            <td>${doctor.company.catchPhrase || 'N/A'}</td> <!-- Placeholder for summary_of_experience -->
-                            <td>Yes</td> <!-- Placeholder for availability -->
+                            <td>${doctor.designation || 'N/A'}</td>
+                            <td>${doctor.specialization || 'N/A'}</td>
+                            <td>${doctor.qualification || 'N/A'}</td>
+                            <td>${doctor.experience || 'N/A'}</td>
+                            <td>${doctor.area_of_expertise || 'N/A'}</td>
+                            <td>${doctor.summary_of_experience || 'N/A'}</td>
+                            <td>${doctor.available ? 'Yes' : 'No'}</td>
                         </tr>
                     `;
                     tbody.innerHTML += row;
@@ -215,11 +215,11 @@
                     const row = `
                         <tr>
                             <td>${appointment.id || 'N/A'}</td>
-                            <td>${Math.floor(Math.random() * 100)}</td> <!-- Placeholder for patientId -->
-                            <td>${Math.floor(Math.random() * 100)}</td> <!-- Placeholder for doctorId -->
-                            <td>${appointment.title || 'N/A'}</td> <!-- Placeholder for date -->
-                            <td>${appointment.body || 'N/A'}</td> <!-- Placeholder for time -->
-                            <td>Consultation</td> <!-- Placeholder for reason -->
+                            <td>${appointment.patient_id || 'N/A'}</td>
+                            <td>${appointment.doctor_id || 'N/A'}</td>
+                            <td>${appointment.date || 'N/A'}</td>
+                            <td>${appointment.time || 'N/A'}</td>
+                            <td>${appointment.reason || 'N/A'}</td>
                         </tr>
                     `;
                     tbody.innerHTML += row;

@@ -385,7 +385,7 @@ body
   .chatbot-popup {
     display: none;
     position: fixed;
-    bottom: 80px;
+    bottom: 130px;
     right: 20px;
     background-color: #ffffff;
     border-radius: 12px;
@@ -579,135 +579,146 @@ body
             <button id="send-btn">Send</button>
         </div>
     </div>
+
     <script>
-        const responses = {
-    "greeting": "Hi there!",
-    "opid_query": "Do you have an OPID? <button onclick='handleOPIDResponse(\"yes\")'>✔ Yes</button> <button onclick='handleOPIDResponse(\"no\")'>✖ No</button>",
-    "opid_request": "Great! Please provide your OPID. It should be the first 3 alphabets of your name followed by 3 numbers (e.g., ABC123).",
-    "patient_details_intro": "Please provide your details:",
-    "default": "I'm sorry, I didn't understand that. Want to connect with an expert?",
-    "expert": "Great! Please wait a moment while we connect you with an expert.",
-    "no": "Okay, if you change your mind just let me know!"
-};
+      const responses = {
+          "greeting": "Hi there!",
+          "opid_query": "Do you have an OPID? <button onclick='handleOPIDResponse(\"yes\")'>✔ Yes</button> <button onclick='handleOPIDResponse(\"no\")'>✖ No</button>",
+          "opid_request": "Great! Please provide your OPID. It should be the first 3 alphabets of your name followed by 3 numbers (e.g., ABC123).",
+          "patient_details_intro": "Please provide your details:",
+          "default": "I'm sorry, I didn't understand that. Want to connect with an expert?",
+          "expert": "Great! Please wait a moment while we connect you with an expert.",
+          "no": "Okay, if you change your mind just let me know!"
+      };
 
+      document.getElementById('chatbot-toggle-btn').addEventListener('click', toggleChatbot);
+      document.getElementById('close-btn').addEventListener('click', toggleChatbot);
+      document.getElementById('send-btn').addEventListener('click', sendMessage);
+      document.getElementById('user-input').addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+              sendMessage();
+          }
+      });
 
-document.getElementById('chatbot-toggle-btn').addEventListener('click', toggleChatbot);
-document.getElementById('close-btn').addEventListener('click', toggleChatbot);
-document.getElementById('send-btn').addEventListener('click', sendMessage);
-document.getElementById('user-input').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        sendMessage();
-    }
-});
+      function toggleChatbot() {
+          const chatbotPopup = document.getElementById('chatbot-popup');
+          chatbotPopup.style.display = chatbotPopup.style.display === 'none' ? 'block' : 'none';
+          if (chatbotPopup.style.display === 'block') {
+              setTimeout(function() {
+                  appendMessage('bot', responses["greeting"]);
+                  setTimeout(function() {
+                      appendMessage('bot', responses["opid_query"]);
+                  }, 500);
+              }, 500);
+          }
+      }
 
+      function sendMessage() {
+          const userInput = document.getElementById('user-input').value.trim();
+          if (userInput !== '') {
+              appendMessage('user', userInput);
+              respondToUser(userInput.toLowerCase());
+              document.getElementById('user-input').value = '';
+          }
+      }
 
-function toggleChatbot() {
-    const chatbotPopup = document.getElementById('chatbot-popup');
-    chatbotPopup.style.display = chatbotPopup.style.display === 'none' ? 'block' : 'none';
-    if (chatbotPopup.style.display === 'block') {
-        setTimeout(function() {
-            appendMessage('bot', responses["greeting"]);
-            setTimeout(function() {
-                appendMessage('bot', responses["opid_query"]);
-            }, 500);
-        }, 500);
-    }
-}
+      function handleOPIDResponse(response) {
+          if (response === 'yes') {
+              appendMessage('bot', responses["opid_request"]);
+          } else {
+              appendMessage('bot', responses["patient_details_intro"]);
+              displayPatientDetailsForm();
+          }
+      }
 
+      function respondToUser(userInput) {
+          if (userInput) {
+              checkOPIDExists(userInput);
+          } else if (document.getElementById('patient-details-form')) {
+              collectPatientDetails();
+          } else {
+              appendMessage('bot', responses["default"]);
+          }
+      }
 
-function sendMessage() {
-    const userInput = document.getElementById('user-input').value.trim();
-    if (userInput !== '') {
-        appendMessage('user', userInput);
-        respondToUser(userInput.toLowerCase());
-        document.getElementById('user-input').value = '';
-    }
-}
+      function displayPatientDetailsForm() {
+          const chatBox = document.getElementById('chat-box');
+          const formElement = document.createElement('form');
+          formElement.id = 'patient-details-form';
+          formElement.innerHTML = `
+              <label for="name">Name:</label>
+              <input type="text" id="name" name="name">
+              <label for="age">Age:</label>
+              <input type="text" id="age" name="age">
+              <label for="gender">Gender:</label>
+              <input type="text" id="gender" name="gender">
+              <label for="contact">Contact Number:</label>
+              <input type="text" id="contact" name="contact">
+              <label for="address">Address:</label>
+              <input type="text" id="address" name="address">
+              <button type="button" onclick="collectPatientDetails()">Submit</button>
+          `;
+          chatBox.appendChild(formElement);
+          chatBox.scrollTop = chatBox.scrollHeight;
+      }
 
+      function collectPatientDetails() {
+          const formElement = document.getElementById('patient-details-form');
+          const formData = new FormData(formElement);
+          let detailsSummary = "Please confirm your details:<br>";
+          for (const [key, value] of formData.entries()) {
+              detailsSummary += `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}<br>`;
+          }
+          detailsSummary += "<button onclick='confirmDetails(true)'>✔ Yes</button> <button onclick='confirmDetails(false)'>✖ No</button>";
+          appendMessage('bot', detailsSummary);
+          formElement.remove();
+      }
 
-function handleOPIDResponse(response) {
-    if (response === 'yes') {
-        appendMessage('bot', responses["opid_request"]);
-    } else {
-        appendMessage('bot', responses["patient_details_intro"]);
-        displayPatientDetailsForm();
-    }
-}
+      function confirmDetails(isConfirmed) {
+          if (isConfirmed) {
+              appendMessage('bot', "Thank you! What are your symptoms?");
+          } else {
+              appendMessage('bot', responses["patient_details_intro"]);
+              displayPatientDetailsForm();
+          }
+      }
 
+      function appendMessage(sender, message) {
+          const chatBox = document.getElementById('chat-box');
+          const messageElement = document.createElement('div');
+          messageElement.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
+          messageElement.innerHTML = message;
+          chatBox.appendChild(messageElement);
+          chatBox.scrollTop = chatBox.scrollHeight;
+      }
 
-function respondToUser(userInput) {
-    if (validateOPID(userInput)) {
-        appendMessage('bot', "Thank you! What are your symptoms?");
-    } else if (document.getElementById('patient-details-form')) {
-        collectPatientDetails();
-    } else {
-        appendMessage('bot', responses["default"]);
-    }
-}
+      // API Request Functions
+      async function checkOPIDExists(opid) {
+          try {
+              const response = await fetch(`http://127.0.0.1:5000/patients/check_opid/${opid}`);
+              const data = await response.json();
+              if (data.exists) {
+                  displayPatientDetails(data.patient);
+              } else {
+                  appendMessage('bot', "The provided OPID does not exist. Please check and try again.");
+              }
+          } catch (error) {
+              appendMessage('bot', "There was an error checking the OPID. Please try again later.");
+          }
+      }
 
-
-function validateOPID(opid) {
-    const opidPattern = /^[A-Za-z]{3}\d{3}$/;
-    return opidPattern.test(opid);
-}
-
-
-function displayPatientDetailsForm() {
-    const chatBox = document.getElementById('chat-box');
-    const formElement = document.createElement('form');
-    formElement.id = 'patient-details-form';
-    formElement.innerHTML = `
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name">
-        <label for="age">Age:</label>
-        <input type="text" id="age" name="age">
-        <label for="gender">Gender:</label>
-        <input type="text" id="gender" name="gender">
-        <label for="contact">Contact Number:</label>
-        <input type="text" id="contact" name="contact">
-        <label for="address">Address:</label>
-        <input type="text" id="address" name="address">
-        <button type="button" onclick="collectPatientDetails()">Submit</button>
-    `;
-    chatBox.appendChild(formElement);
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-
-function collectPatientDetails() {
-    const formElement = document.getElementById('patient-details-form');
-    const formData = new FormData(formElement);
-    let detailsSummary = "Please confirm your details:<br>";
-    for (const [key, value] of formData.entries()) {
-        detailsSummary += `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}<br>`;
-    }
-    detailsSummary += "<button onclick='confirmDetails(true)'>✔ Yes</button> <button onclick='confirmDetails(false)'>✖ No</button>";
-    appendMessage('bot', detailsSummary);
-    formElement.remove();
-}
-
-
-function confirmDetails(isConfirmed) {
-    if (isConfirmed) {
-        appendMessage('bot', "Thank you! What are your symptoms?");
-    } else {
-        appendMessage('bot', responses["patient_details_intro"]);
-        displayPatientDetailsForm();
-    }
-}
-
-
-function appendMessage(sender, message) {
-    const chatBox = document.getElementById('chat-box');
-    const messageElement = document.createElement('div');
-    messageElement.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
-    messageElement.innerHTML = message;
-    chatBox.appendChild(messageElement);
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-
-    </script>
+      function displayPatientDetails(patient) {
+          let detailsSummary = `Patient Details:<br>
+              Name: ${patient.name}<br>
+              Age: ${patient.age}<br>
+              Gender: ${patient.gender}<br>
+              Contact: ${patient.contact_no}<br>
+              Address: ${patient.address}<br>
+              OPID: ${patient.op_id}<br>
+              <button onclick='confirmDetails(true)'>✔ Yes</button> <button onclick='confirmDetails(false)'>✖ No</button>`;
+          appendMessage('bot', detailsSummary);
+      }
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 

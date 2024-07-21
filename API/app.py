@@ -1,11 +1,12 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import os
-from pyngrok import ngrok
+from flask_cors import CORS
+import datetime
 
 app = Flask(__name__)
 port = "5000"
-
+CORS(app)
 
 
 # Configure the database
@@ -27,11 +28,11 @@ class Patient(db.Model):
 
 class Appointment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=False)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
-    date = db.Column(db.Date, nullable=False)
-    time = db.Column(db.Time, nullable=False)
-    reason = db.Column(db.String(200), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'))
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'))
+    date = db.Column(db.String)
+    time = db.Column(db.Time)
+    reason = db.Column(db.String(200))
 
 class Doctor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -135,19 +136,40 @@ def check_doctor_availability(name):
     else:
         return jsonify({'error': 'Doctor not found'}), 404
 
-@app.route('/appointments', methods=['POST'])
+# Add appointment endpoint
+@app.route('/add_appointment', methods=['POST'])
 def add_appointment():
-    data = request.get_json()
-    new_appointment = Appointment(
-        patient_id=data['patient_id'],
-        doctor_id=data['doctor_id'],
-        date=data['date'],
-        time=data['time'],
-        reason=data['reason']
-    )
-    db.session.add(new_appointment)
-    db.session.commit()
-    return jsonify({'message': 'New appointment added successfully'}), 201
+    try:
+        data = request.get_json()
+
+        patient_id = data['patient_id']
+        doctor_id = data['doctor_id']
+        date_str = data['date']
+        time_str = data['time']
+        reason = data['reason']
+
+        # Convert the date and time strings to date and time objects
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+        time_obj = datetime.strptime(time_str, '%H:%M:%S').time()
+
+        # Create the appointment instance with the correct types
+        appointment = Appointment(
+            patient_id=patient_id,
+            doctor_id=doctor_id,
+            date=date_obj,
+            time=time_obj,
+            reason=reason
+        )
+
+        # Add and commit to the database session
+        db.session.add(appointment)
+        db.session.commit()
+
+        return jsonify({'message': 'Appointment added successfully'}), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
 
 @app.route('/appointments', methods=['GET'])
 def get_appointments():
